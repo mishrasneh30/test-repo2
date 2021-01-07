@@ -1,0 +1,19 @@
+node('master') 
+   {
+        stage('Build') {
+            
+            git 'https://github.com/mishrasneh30/test-repo2.git'
+            
+            def mvn_version = 'maven3'
+            withEnv( ["PATH+MAVEN=${tool mvn_version}/bin"] ) 
+            {
+                 sh "mvn clean install"
+            }
+        }
+        stage('Post Build') {
+            
+            script{
+                    synopsys_detect '--detect.project.name="SCM_Scripted_Pipeline"'
+                }
+        } 
+    }
