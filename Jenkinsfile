@@ -1,27 +1,31 @@
 pipeline {
-   agent {
-       docker {
-           image 'maven:3.6.0-jdk-8-alpine'
-           args '-u root'
-       }
-   }
-   environment {
-      
-       BDS_JAVA_HOME="/usr/lib/jvm/java-1.8-openjdk"
-   }
-   stages {
-       stage('Run Synopsys Detect') {
-           steps {
+    agent { label 'master' }
+    stages {
+        stage('Build') {
+            steps('Build Steps'){
+                    git 'https://github.com/mishrasneh30/test-repo2.git'
+                
+                    script{
+                        def mvn_version = 'maven3'
+                        sh 'echo mvn_version'
+                        withEnv( ["PATH+MAVEN=${tool mvn_version}/bin"] ) 
+                        {
+                             sh "mvn clean install"
+                        }
+                    }
+                }
               
-               git 'https://github.com/mishrasneh30/test-repo2.git'
-               
-               sh "mvn clean install"
-               
-                synopsys_detect detectProperties: '--detect.project.name="Declarative_Pipeline_Docker_1827013740_3" --detect.excluded.detector.types=GIT'
-                         
-                  }
-              
-           }
-       }
-   }
-
+        }
+        stage('Post Build') {
+            steps('Synopsys Detect'){
+                
+                script{
+                        synopsys_detect '--detect.project.name="SCM_Declarative_pipeline"'
+                        
+                    }
+            }
+            
+        }    
+        
+    }
+}
